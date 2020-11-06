@@ -3,7 +3,8 @@ import argparse
 import logging
 import sys
 
-sys.path.append("/home/mtran/pytorch-seq2seq/")
+#sys.path.append("/home/mtran/pytorch-seq2seq/")
+sys.path.append("/home/ICT2000/mtran/pytorch-seq2seq/")
 import torch
 from torch.optim.lr_scheduler import StepLR
 import torchtext
