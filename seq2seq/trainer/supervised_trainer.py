@@ -79,6 +79,7 @@ class SupervisedTrainer(object):
             sort_key=lambda x: len(x.src),
             device=device, repeat=False)
 
+        mdevice = 'cuda' if torch.cuda.is_available() else 'cpu'
         steps_per_epoch = len(batch_iterator)
         total_steps = steps_per_epoch * n_epochs
 
@@ -99,6 +100,8 @@ class SupervisedTrainer(object):
 
                 input_variables, input_lengths = getattr(batch, seq2seq.src_field_name)
                 target_variables = getattr(batch, seq2seq.tgt_field_name)
+                input_variables = input_variables.to(mdevice)
+                target_variables = target_variables.to(mdevice)
 
                 loss = self._train_batch(input_variables, input_lengths.tolist(), target_variables, model, teacher_forcing_ratio)
 

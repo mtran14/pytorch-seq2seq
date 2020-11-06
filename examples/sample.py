@@ -3,8 +3,8 @@ import argparse
 import logging
 import sys
 
-#sys.path.append("/home/mtran/pytorch-seq2seq/")
-sys.path.append("/home/ICT2000/mtran/pytorch-seq2seq/")
+sys.path.append("/home/mtran/pytorch-seq2seq/")
+#sys.path.append("/home/ICT2000/mtran/pytorch-seq2seq/")
 import torch
 from torch.optim.lr_scheduler import StepLR
 import torchtext
@@ -36,6 +36,8 @@ parser.add_argument('--train_path', action='store', dest='train_path',
                     help='Path to train data')
 parser.add_argument('--dev_path', action='store', dest='dev_path',
                     help='Path to dev data')
+parser.add_argument('--test_path', action='store', dest='test_path',
+                    help='Path to test data')
 parser.add_argument('--expt_dir', action='store', dest='expt_dir', default='./experiment',
                     help='Path to experiment directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
 parser.add_argument('--load_checkpoint', action='store', dest='load_checkpoint',
@@ -64,7 +66,7 @@ else:
     # Prepare dataset
     src = SourceField()
     tgt = TargetField()
-    max_len = 50
+    max_len = 40
     def len_filter(example):
         return len(example.src) <= max_len and len(example.tgt) <= max_len
     train = torchtext.data.TabularDataset(
@@ -126,14 +128,29 @@ else:
                           print_every=10, expt_dir=opt.expt_dir)
 
     seq2seq = t.train(seq2seq, train,
-                      num_epochs=6, dev_data=dev,
+                      num_epochs=40, dev_data=dev,
                       optimizer=optimizer,
                       teacher_forcing_ratio=0.5,
                       resume=opt.resume)
 
 predictor = Predictor(seq2seq, input_vocab, output_vocab)
 
-while True:
-    seq_str = raw_input("Type in a source sequence:")
-    seq = seq_str.strip().split()
-    print(predictor.predict(seq))
+#while True:
+    #seq_str = raw_input("Type in a source sequence:")
+    #seq = seq_str.strip().split()
+    #print(predictor.predict(seq))
+with open(opt.test_path) as f:
+    content = f.readlines()
+content = [x.strip() for x in content]
+
+output = ""
+for row in content:
+     seq_in = row.split("\t")[0]
+     seq_out = row.split("\t")[1]
+     seq_pred = predictor.predict(seq_in.strip().split())
+     seq_pred = " ".join(seq_pred[:-1])
+     output += seq_out + "\t" + seq_pred + "\n"
+output_file = "seq_pred.txt"
+text_train = open(output_file, "w")
+text_train.write(output)
+text_train.close()  
